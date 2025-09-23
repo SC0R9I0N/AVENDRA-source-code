@@ -23,6 +23,9 @@ public class GeoNode {
     public List<GeoEdge> getEdges() { return edges; }
     public ZoneType getZone() { return zone; }
     public String getId() { return id; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
+    public double getAltitude() { return altitude; }
 
     @Override
     public String toString() {
