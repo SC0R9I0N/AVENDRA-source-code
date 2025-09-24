@@ -43,8 +43,8 @@ public class GraphVisualization {
             circle.setFill(switch (node.getZone()) {
                 case TERMINAL -> Color.MEDIUMPURPLE;
                 case AERODROME -> Color.BLUE;
-                case PROPERTY_LINE -> Color.LIMEGREEN;
-                case HOTSPOT -> Color.HOTPINK;
+                case PROPERTY_LINE -> Color.HOTPINK;
+                case HOTSPOT -> Color.LIMEGREEN;
             });
             root.getChildren().add(circle);
         }
@@ -63,7 +63,7 @@ public class GraphVisualization {
                 line.setStroke(switch (node.getZone()) {
                     case TERMINAL -> Color.MEDIUMPURPLE;
                     case AERODROME -> Color.BLUE;
-                    case PROPERTY_LINE -> Color.LIMEGREEN;
+                    case PROPERTY_LINE -> Color.HOTPINK;
                     case HOTSPOT -> Color.WHITE;
                 });
                 line.getStrokeDashArray().addAll(5.0, 5.0);
