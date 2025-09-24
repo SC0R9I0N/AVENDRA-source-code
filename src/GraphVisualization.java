@@ -4,6 +4,8 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import java.util.List;
 
+import static java.lang.Math.abs;
+
 
 public class GraphVisualization {
     public static Group render(List<GeoNode> nodes) {
@@ -14,10 +16,10 @@ public class GraphVisualization {
         double minLon = Double.MAX_VALUE, maxLon = Double.MIN_VALUE;
 
         for (GeoNode node : nodes) {
-            minLat = Math.min(minLat, node.getLatitude());
-            maxLat = Math.max(maxLat, node.getLatitude());
-            minLon = Math.min(minLon, node.getLongitude());
-            maxLon = Math.max(maxLon, node.getLongitude());
+            minLat = Math.min(minLat, abs(node.getLatitude()));
+            maxLat = Math.max(maxLat, abs(node.getLatitude()));
+            minLon = Math.min(minLon, abs(node.getLongitude()));
+            maxLon = Math.max(maxLon, abs(node.getLongitude()));
         }
 
         // step 2: add buffer to clearly see property line
@@ -34,15 +36,15 @@ public class GraphVisualization {
 
         // step 4: draw nodes
         for (GeoNode node : nodes) {
-            double x = ((node.getLongitude() - minLon) / (maxLon - minLon)) * canvasWidth;
+            double x = ((abs(node.getLongitude()) - minLon) / (maxLon - minLon) * canvasWidth);
             double y = ((maxLat - node.getLatitude()) / (maxLat - minLat)) * canvasHeight;
 
             Circle circle = new Circle(x, y, 5);
             circle.setFill(switch (node.getZone()) {
-                case TERMINAL -> Color.RED;
+                case TERMINAL -> Color.MEDIUMPURPLE;
                 case AERODROME -> Color.BLUE;
-                case PROPERTY_LINE -> Color.GREEN;
-                case HOTSPOT -> Color.YELLOW;
+                case PROPERTY_LINE -> Color.LIMEGREEN;
+                case HOTSPOT -> Color.HOTPINK;
             });
             root.getChildren().add(circle);
         }
@@ -51,17 +53,17 @@ public class GraphVisualization {
         for (GeoNode node : nodes) {
             for (GeoEdge edge : node.getEdges()) {
                 GeoNode target = edge.getTarget();
-                double x1 = ((node.getLongitude() - minLon) / (maxLon - minLon)) * canvasWidth;
+                double x1 = ((abs(node.getLongitude()) - minLon) / (maxLon - minLon)) * canvasWidth;
                 double y1 = ((maxLat - node.getLatitude()) / (maxLat - minLat)) * canvasHeight;
-                double x2 = ((edge.getTarget().getLongitude() - minLon) / (maxLon - minLon)) * canvasWidth;
+                double x2 = ((abs(edge.getTarget().getLongitude()) - minLon) / (maxLon - minLon)) * canvasWidth;
                 double y2 = ((maxLat - edge.getTarget().getLatitude()) / (maxLat - minLat)) * canvasHeight;
 
 
                 Line line = new Line(x1, y1, x2, y2);
                 line.setStroke(switch (node.getZone()) {
-                    case TERMINAL -> Color.RED;
+                    case TERMINAL -> Color.MEDIUMPURPLE;
                     case AERODROME -> Color.BLUE;
-                    case PROPERTY_LINE -> Color.GREEN;
+                    case PROPERTY_LINE -> Color.LIMEGREEN;
                     case HOTSPOT -> Color.WHITE;
                 });
                 line.getStrokeDashArray().addAll(5.0, 5.0);

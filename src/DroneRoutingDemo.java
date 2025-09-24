@@ -5,6 +5,10 @@ import javafx.stage.Stage;
 
 public class DroneRoutingDemo extends Application {
 
+    // used to approximate radius of the aerodrome
+    private static final double AERODROME_RADIUS_DEGREES = 0.0025;
+    private static final int AERODROME_OUTLINE_NODES = 24;
+
     @Override
     public void start(Stage primaryStage) {
         List<GeoNode> nodes = buildGraph();
@@ -21,20 +25,40 @@ public class DroneRoutingDemo extends Application {
     private List<GeoNode> buildGraph() {
         List<GeoNode> nodes = new ArrayList<>();
 
-        // Terminal corners
-        GeoNode tNW = new GeoNode("T-NW", ZoneType.TERMINAL, 40.4910, -80.2330, 330);
-        GeoNode tNE = new GeoNode("T-NE", ZoneType.TERMINAL, 40.4910, -80.2310, 330);
-        GeoNode tSE = new GeoNode("T-SE", ZoneType.TERMINAL, 40.4890, -80.2310, 330);
-        GeoNode tSW = new GeoNode("T-SW", ZoneType.TERMINAL, 40.4890, -80.2330, 330);
+        // U-shaped Terminal (8 nodes, creating a shape that opens to the east)
+        GeoNode t_N_outer = new GeoNode("T-N-outer", ZoneType.TERMINAL, 40.4910, -80.2330, 330);
+        GeoNode t_N_inner = new GeoNode("T-N-inner", ZoneType.TERMINAL, 40.4905, -80.2330, 330);
+        GeoNode t_E_inner_N = new GeoNode("T-E-inner-N", ZoneType.TERMINAL, 40.4905, -80.2315, 330);
+        GeoNode t_E_inner_S = new GeoNode("T-E-inner-S", ZoneType.TERMINAL, 40.4895, -80.2315, 330);
+        GeoNode t_S_inner = new GeoNode("T-S-inner", ZoneType.TERMINAL, 40.4895, -80.2330, 330);
+        GeoNode t_S_outer = new GeoNode("T-S-outer", ZoneType.TERMINAL, 40.4890, -80.2330, 330);
+        GeoNode t_W_outer_S = new GeoNode("T-W-outer-S", ZoneType.TERMINAL, 40.4890, -80.2310, 330);
+        GeoNode t_W_outer_N = new GeoNode("T-W-outer-N", ZoneType.TERMINAL, 40.4910, -80.2310, 330);
 
-        // Aerodrome corners
-        GeoNode aNW = new GeoNode("A-NW", ZoneType.AERODROME, 40.4935, -80.2405, 280);
-        GeoNode aNE = new GeoNode("A-NE", ZoneType.AERODROME, 40.4935, -80.2380, 280);
-        GeoNode aSE = new GeoNode("A-SE", ZoneType.AERODROME, 40.4910, -80.2380, 280);
-        GeoNode aSW = new GeoNode("A-SW", ZoneType.AERODROME, 40.4910, -80.2405, 280);
-        GeoNode aRunway = new GeoNode("A-Runway", ZoneType.AERODROME, 40.4922, -80.2392, 275);
+        // Circular Aerodrome
+        GeoNode aCenter = new GeoNode("A-Center", ZoneType.AERODROME, 40.4900, -80.2365, 280);
 
-        // Property line
+        // Generate and connect nodes for the circular aerodrome outline
+        List<GeoNode> aerodromeOutlineNodes = new ArrayList<>();
+        for (int i = 0; i < AERODROME_OUTLINE_NODES; i++) {
+            double angle = 2 * Math.PI * i / AERODROME_OUTLINE_NODES;
+            double lat = aCenter.getLatitude() + AERODROME_RADIUS_DEGREES * Math.sin(angle);
+            double lon = aCenter.getLongitude() + AERODROME_RADIUS_DEGREES * Math.cos(angle);
+            GeoNode outlineNode = new GeoNode("A-Outline-" + i, ZoneType.AERODROME, lat, lon, 280);
+            aerodromeOutlineNodes.add(outlineNode);
+
+            // Connect the outline node to the center
+            aCenter.addEdge(new GeoEdge(aCenter, outlineNode));
+        }
+
+        // Connect the outline nodes to each other to form the circle
+        for (int i = 0; i < aerodromeOutlineNodes.size(); i++) {
+            GeoNode currentNode = aerodromeOutlineNodes.get(i);
+            GeoNode nextNode = aerodromeOutlineNodes.get((i + 1) % aerodromeOutlineNodes.size());
+            currentNode.addEdge(new GeoEdge(currentNode, nextNode));
+        }
+
+        // Property line (unchanged)
         GeoNode pNW = new GeoNode("P-NW", ZoneType.PROPERTY_LINE, 40.4945, -80.2460, 285);
         GeoNode pNE = new GeoNode("P-NE", ZoneType.PROPERTY_LINE, 40.4945, -80.2290, 285);
         GeoNode pSE = new GeoNode("P-SE", ZoneType.PROPERTY_LINE, 40.4870, -80.2290, 285);
@@ -43,29 +67,41 @@ public class DroneRoutingDemo extends Application {
         // Hotspots
         GeoNode[] hotspots = new GeoNode[10];
         for (int i = 0; i < 10; i++) {
-            double lat = 40.4880 + (Math.random() * 0.007);
-            double lon = -80.2450 + (Math.random() * 0.015);
-            double alt = 300 + (Math.random() * 20);
+            double lat, lon, alt;
+            boolean isValid;
+            do {
+                lat = 40.4880 + (Math.random() * 0.007);
+                lon = -80.2450 + (Math.random() * 0.015);
+                alt = 300 + (Math.random() * 20);
+
+                // Check if within property line
+                boolean withinPropertyLine = (lat >= pSW.getLatitude() && lat <= pNW.getLatitude()) &&
+                        (lon >= pSW.getLongitude() && lon <= pNE.getLongitude());
+
+                // Check if within the circular aerodrome
+                boolean withinAerodrome = isWithinAerodrome(lat, lon, aCenter);
+
+                // Location is valid if it's within the property line and NOT within the aerodrome
+                isValid = withinPropertyLine && !withinAerodrome;
+            } while (!isValid);
+
             hotspots[i] = new GeoNode("H" + (i + 1), ZoneType.HOTSPOT, lat, lon, alt);
         }
 
-        // Add all nodes
-        nodes.addAll(List.of(tNW, tNE, tSE, tSW, aNW, aNE, aSE, aSW, aRunway, pNW, pNE, pSE, pSW));
+        // Add all nodes to the list
+        nodes.addAll(List.of(t_N_outer, t_N_inner, t_E_inner_N, t_E_inner_S, t_S_inner, t_S_outer, t_W_outer_S, t_W_outer_N, aCenter, pNW, pNE, pSE, pSW));
+        nodes.addAll(aerodromeOutlineNodes);
         nodes.addAll(Arrays.asList(hotspots));
 
-        // Connect terminal
-        tNW.addEdge(new GeoEdge(tNW, tNE));
-        tNE.addEdge(new GeoEdge(tNE, tSE));
-        tSE.addEdge(new GeoEdge(tSE, tSW));
-        tSW.addEdge(new GeoEdge(tSW, tNW));
-
-        // Connect aerodrome
-        aNW.addEdge(new GeoEdge(aNW, aNE));
-        aNE.addEdge(new GeoEdge(aNE, aSE));
-        aSE.addEdge(new GeoEdge(aSE, aSW));
-        aSW.addEdge(new GeoEdge(aSW, aNW));
-        aRunway.addEdge(new GeoEdge(aRunway, aNW));
-        aRunway.addEdge(new GeoEdge(aRunway, aSE));
+        // Connect terminal nodes to form the U-shape (opening to the east)
+        t_N_outer.addEdge(new GeoEdge(t_N_outer, t_W_outer_N));
+        t_W_outer_N.addEdge(new GeoEdge(t_W_outer_N, t_W_outer_S));
+        t_W_outer_S.addEdge(new GeoEdge(t_W_outer_S, t_S_outer));
+        t_S_outer.addEdge(new GeoEdge(t_S_outer, t_S_inner));
+        t_S_inner.addEdge(new GeoEdge(t_S_inner, t_E_inner_S));
+        t_E_inner_S.addEdge(new GeoEdge(t_E_inner_S, t_E_inner_N));
+        t_E_inner_N.addEdge(new GeoEdge(t_E_inner_N, t_N_inner));
+        t_N_inner.addEdge(new GeoEdge(t_N_inner, t_N_outer));
 
         // Connect property line
         pNW.addEdge(new GeoEdge(pNW, pNE));
@@ -74,5 +110,24 @@ public class DroneRoutingDemo extends Application {
         pSW.addEdge(new GeoEdge(pSW, pNW));
 
         return nodes;
+    }
+
+    /**
+     * Checks if a given coordinate is within the defined circular aerodrome area.
+     * This uses a simple distance calculation based on latitude and longitude differences.
+     * NOTE: This is an approximation for visualization purposes and does not account for
+     * the Earth's curvature.
+     *
+     * @param lat Latitude of the point.
+     * @param lon Longitude of the point.
+     * @param aCenter The central node of the aerodrome.
+     * @return True if the point is within the aerodrome, false otherwise.
+     */
+    private boolean isWithinAerodrome(double lat, double lon, GeoNode aCenter) {
+        double latDiff = lat - aCenter.getLatitude();
+        double lonDiff = lon - aCenter.getLongitude();
+        // Use squared distance to avoid expensive square root operation
+        double distanceSquared = (latDiff * latDiff) + (lonDiff * lonDiff);
+        return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
     }
 }
