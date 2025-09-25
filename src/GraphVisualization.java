@@ -3,7 +3,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import java.util.List;
-
+import javafx.scene.text.Text;
 import static java.lang.Math.abs;
 
 
@@ -34,6 +34,11 @@ public class GraphVisualization {
         double canvasWidth = 800;
         double canvasHeight = 600;
 
+        // Create a single Text node to display the altitude
+        Text altitudeText = new Text();
+        altitudeText.setVisible(false);
+        altitudeText.setFill(Color.BLACK);
+
         // step 4: draw nodes
         for (GeoNode node : nodes) {
             double x = ((abs(node.getLongitude()) - minLon) / (maxLon - minLon) * canvasWidth);
@@ -46,6 +51,22 @@ public class GraphVisualization {
                 case PROPERTY_LINE -> Color.HOTPINK;
                 case HOTSPOT -> Color.LIMEGREEN;
             });
+
+            // Add event handlers for mouse hover
+            circle.setOnMouseEntered(e -> {
+                // Set the text to show both ID and Altitude
+                altitudeText.setText(String.format("ID: %s, Alt: %.1fm", node.getId(), node.getAltitude()));
+
+                // Position text slightly to the left and above the node
+                altitudeText.setX(x - 50);
+                altitudeText.setY(y - 15);
+                altitudeText.setVisible(true);
+            });
+
+            circle.setOnMouseExited(e -> {
+                altitudeText.setVisible(false);
+            });
+
             root.getChildren().add(circle);
         }
 
@@ -70,6 +91,8 @@ public class GraphVisualization {
                 root.getChildren().add(line);
             }
         }
+
+        root.getChildren().add(altitudeText);
 
         return root;
     }
