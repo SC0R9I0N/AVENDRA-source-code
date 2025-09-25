@@ -7,7 +7,6 @@ TODO:
 - Update the code to include the graph traversal class
 - Add an automatic key to the graph
 - Increase robust checks so that it handles all possible Lon/Lat values
-- Add functionality where you can hover over a node to see its elevation
 - Comment, comment, comment
 - Write documentation
 - Done
