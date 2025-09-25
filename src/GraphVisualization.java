@@ -96,4 +96,51 @@ public class GraphVisualization {
 
         return root;
     }
+
+    public static void drawPath(Group root, List<GeoNode> path) {
+        if (path == null || path.size() < 2) return;
+
+        // Clear any previously drawn path lines
+        root.getChildren().removeIf(node -> "path-line".equals(node.getId()));
+
+        // Re-compute bounds to ensure correct scaling, or pass them in
+        // For simplicity, let's assume the render method's logic is already run
+        // and we have the bounds. In a real app, you might refactor this.
+        double minLat = Double.MAX_VALUE, maxLat = Double.MIN_VALUE;
+        double minLon = Double.MAX_VALUE, maxLon = Double.MIN_VALUE;
+
+        for (GeoNode node : path) {
+            minLat = Math.min(minLat, abs(node.getLatitude()));
+            maxLat = Math.max(maxLat, abs(node.getLatitude()));
+            minLon = Math.min(minLon, abs(node.getLongitude()));
+            maxLon = Math.max(maxLon, abs(node.getLongitude()));
+        }
+
+        double latBuffer = (maxLat - minLat) * 0.1;
+        double lonBuffer = (maxLon - minLon) * 0.1;
+        minLat -= latBuffer;
+        maxLat += latBuffer;
+        minLon -= lonBuffer;
+        maxLon += lonBuffer;
+
+        double canvasWidth = 800;
+        double canvasHeight = 600;
+
+        // Draw the edges for the optimal path
+        for (int i = 0; i < path.size() - 1; i++) {
+            GeoNode fromNode = path.get(i);
+            GeoNode toNode = path.get(i + 1);
+
+            double x1 = ((abs(fromNode.getLongitude()) - minLon) / (maxLon - minLon)) * canvasWidth;
+            double y1 = ((maxLat - fromNode.getLatitude()) / (maxLat - minLat)) * canvasHeight;
+            double x2 = ((abs(toNode.getLongitude()) - minLon) / (maxLon - minLon)) * canvasWidth;
+            double y2 = ((maxLat - toNode.getLatitude()) / (maxLat - minLat)) * canvasHeight;
+
+            Line pathLine = new Line(x1, y1, x2, y2);
+            pathLine.setStroke(Color.GOLD);
+            pathLine.setStrokeWidth(2.5); // Make the path more visible
+            pathLine.setId("path-line"); // Use an ID for easy removal later
+            root.getChildren().add(pathLine);
+        }
+    }
 }

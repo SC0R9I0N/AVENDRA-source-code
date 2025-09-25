@@ -1,6 +1,9 @@
 import java.util.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane; // A good layout for adding a button
+import javafx.scene.Group;
 import javafx.stage.Stage;
 
 public class DroneRoutingDemo extends Application {
@@ -12,7 +15,19 @@ public class DroneRoutingDemo extends Application {
     @Override
     public void start(Stage primaryStage) {
         List<GeoNode> nodes = buildGraph();
-        Scene scene = new Scene(GraphVisualization.render(nodes), 800, 600); // Render it
+        Group graphGroup = GraphVisualization.render(nodes);
+
+        Button runPathButton = new Button("Run Optimal Path");
+        runPathButton.setOnAction(e -> {
+            List<GeoNode> path = DronePathfinder.findOptimalRoute(nodes);
+            GraphVisualization.drawPath(graphGroup, path);
+        });
+
+        BorderPane root = new BorderPane();
+        root.setCenter(graphGroup);
+        root.setBottom(runPathButton); // Place the button at the bottom
+
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Drone Routing Visualization");
         primaryStage.show();
