@@ -58,15 +58,15 @@ public class DroneRoutingDemo extends Application {
             currentNode.addEdge(new GeoEdge(currentNode, nextNode));
         }
 
-        // Property line (unchanged)
+        // Property line
         GeoNode pNW = new GeoNode("P-NW", ZoneType.PROPERTY_LINE, 40.4945, -80.2460, 285);
         GeoNode pNE = new GeoNode("P-NE", ZoneType.PROPERTY_LINE, 40.4945, -80.2290, 285);
         GeoNode pSE = new GeoNode("P-SE", ZoneType.PROPERTY_LINE, 40.4870, -80.2290, 285);
         GeoNode pSW = new GeoNode("P-SW", ZoneType.PROPERTY_LINE, 40.4870, -80.2460, 285);
 
         // Hotspots
-        GeoNode[] hotspots = new GeoNode[10];
-        for (int i = 0; i < 10; i++) {
+        GeoNode[] hotspots = new GeoNode[30];
+        for (int i = 0; i < 30; i++) {
             double lat, lon, alt;
             boolean isValid;
             do {
@@ -81,6 +81,13 @@ public class DroneRoutingDemo extends Application {
                 // Check if within the circular aerodrome
                 boolean withinAerodrome = isWithinAerodrome(lat, lon, aCenter);
 
+                // Check if within the U-shaped terminal
+                boolean withinTerminal = isWithinTerminal(lat, lon);
+
+                if (withinTerminal) {
+                    alt = 340;
+                }
+
                 // Location is valid if it's within the property line and NOT within the aerodrome
                 isValid = withinPropertyLine && !withinAerodrome;
             } while (!isValid);
@@ -93,7 +100,7 @@ public class DroneRoutingDemo extends Application {
         nodes.addAll(aerodromeOutlineNodes);
         nodes.addAll(Arrays.asList(hotspots));
 
-        // Connect terminal nodes to form the U-shape (opening to the east)
+        // Connect terminal nodes to form the U-shape
         t_N_outer.addEdge(new GeoEdge(t_N_outer, t_W_outer_N));
         t_W_outer_N.addEdge(new GeoEdge(t_W_outer_N, t_W_outer_S));
         t_W_outer_S.addEdge(new GeoEdge(t_W_outer_S, t_S_outer));
@@ -129,5 +136,29 @@ public class DroneRoutingDemo extends Application {
         // Use squared distance to avoid expensive square root operation
         double distanceSquared = (latDiff * latDiff) + (lonDiff * lonDiff);
         return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
+    }
+
+    /**
+     * Checks if a given coordinate is within the U-shaped terminal area.
+     * The terminal is composed of two rectangles: a vertical one on the west, and a horizontal one on the south.
+     *
+     * @param lat Latitude of the point.
+     * @param lon Longitude of the point.
+     * @return True if the point is within the terminal, false otherwise.
+     */
+    private boolean isWithinTerminal(double lat, double lon) {
+        // Rectangle 1: Top horizontal part
+        boolean withinTopPart = (lat <= 40.4910 && lat >= 40.4905) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+
+        // Rectangle 2: Bottom horizontal part
+        boolean withinBottomPart = (lat <= 40.4895 && lat >= 40.4890) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+
+        // Rectangle 3: The vertical part of the U
+        boolean withinVerticalPart = (lat <= 40.4910 && lat >= 40.4890) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+
+        return withinTopPart || withinBottomPart || withinVerticalPart;
     }
 }
