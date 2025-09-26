@@ -1,59 +1,92 @@
 import java.util.*;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.Group;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class DroneRoutingDemo extends Application {
 
-    // used to approximate radius of the aerodrome
     private static final double AERODROME_RADIUS_DEGREES = 0.0025;
     private static final int AERODROME_OUTLINE_NODES = 24;
 
-    // Store the nodes list as a field so it can be accessed by the button
     private List<GeoNode> nodes;
     private BorderPane root;
 
     @Override
     public void start(Stage primaryStage) {
         this.nodes = buildGraph();
-
         this.root = new BorderPane();
 
         // Initial rendering of the graph
         updateVisualization();
 
+        // Create the key
+        VBox key = createKey();
+        root.setRight(key); // Place the key on the right side of the BorderPane
+
         Button runPathButton = new Button("Run Optimal Path");
         runPathButton.setOnAction(e -> {
-            // Clear existing hotspot edges to prevent duplicates
             clearHotspotEdges();
-            // Create and add the new edges to the graph
             DronePathfinder.createOptimalRouteEdges(this.nodes);
-            // Re-render the visualization with the new edges
             updateVisualization();
         });
 
         root.setBottom(runPathButton);
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 950, 600); // Increased width to accommodate the key
         primaryStage.setScene(scene);
         primaryStage.setTitle("Drone Routing Visualization");
         primaryStage.show();
     }
 
     private void updateVisualization() {
-        // Create the new visualization group
         Group graphGroup = GraphVisualization.render(this.nodes);
-        // Set it as the center of the BorderPane
         root.setCenter(graphGroup);
+    }
+
+    // New method to create the legend/key
+    private VBox createKey() {
+        VBox keyBox = new VBox(10); // Spacing of 10 pixels between elements
+        keyBox.setPadding(new Insets(20, 10, 10, 10)); // Padding around the key
+        keyBox.setStyle("-fx-background-color: #333333;"); // Dark background for contrast
+
+        Text title = new Text("Graph Key");
+        title.setFill(Color.WHITE);
+        title.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
+
+        keyBox.getChildren().add(title);
+
+        keyBox.getChildren().add(createKeyItem("Terminal", Color.MEDIUMPURPLE));
+        keyBox.getChildren().add(createKeyItem("Aerodrome", Color.BLUE));
+        keyBox.getChildren().add(createKeyItem("Property Line", Color.HOTPINK));
+        keyBox.getChildren().add(createKeyItem("Hotspot", Color.LIMEGREEN));
+        keyBox.getChildren().add(createKeyItem("Optimal Path", Color.GOLD));
+
+        return keyBox;
+    }
+
+    // Helper method to create a single key item
+    private VBox createKeyItem(String label, Color color) {
+        Circle circle = new Circle(5);
+        circle.setFill(color);
+        Text text = new Text(label);
+        text.setFill(Color.WHITE);
+
+        VBox item = new VBox(5);
+        item.getChildren().addAll(circle, text);
+        return item;
     }
 
     private void clearHotspotEdges() {
         for (GeoNode node : nodes) {
             if (node.getZone() == ZoneType.HOTSPOT) {
-                // Clear only the edges originating from hotspots
                 node.getEdges().clear();
             }
         }
@@ -63,8 +96,24 @@ public class DroneRoutingDemo extends Application {
         launch(args);
     }
 
+    private boolean isWithinAerodrome(double lat, double lon, GeoNode aCenter) {
+        double latDiff = lat - aCenter.getLatitude();
+        double lonDiff = lon - aCenter.getLongitude();
+        double distanceSquared = (latDiff * latDiff) + (lonDiff * lonDiff);
+        return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
+    }
+
+    private boolean isWithinTerminal(double lat, double lon) {
+        boolean withinTopPart = (lat <= 40.4910 && lat >= 40.4905) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+        boolean withinBottomPart = (lat <= 40.4895 && lat >= 40.4890) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+        boolean withinVerticalPart = (lat <= 40.4910 && lat >= 40.4890) &&
+                (lon >= -80.2330 && lon <= -80.2310);
+        return withinTopPart || withinBottomPart || withinVerticalPart;
+    }
+
     private List<GeoNode> buildGraph() {
-        // ... (The rest of the buildGraph method is unchanged)
         List<GeoNode> nodes = new ArrayList<>();
 
         // U-shaped Terminal (8 nodes, creating a shape that opens to the east)
@@ -126,9 +175,13 @@ public class DroneRoutingDemo extends Application {
                 // Check if within the U-shaped terminal
                 boolean withinTerminal = isWithinTerminal(lat, lon);
 
+                if (withinTerminal) {
+                    alt = 340;
+                }
+
                 // Location is valid if it's within the property line and NOT within the aerodrome
                 // Additionally, if it's within the terminal, its altitude must be at least 340m
-                isValid = withinPropertyLine && !withinAerodrome && (!withinTerminal || alt >= 340.0);
+                isValid = withinPropertyLine && !withinAerodrome;
             } while (!isValid);
 
             hotspots[i] = new GeoNode("H" + (i + 1), ZoneType.HOTSPOT, lat, lon, alt);
@@ -156,22 +209,5 @@ public class DroneRoutingDemo extends Application {
         pSW.addEdge(new GeoEdge(pSW, pNW));
 
         return nodes;
-    }
-
-    private boolean isWithinAerodrome(double lat, double lon, GeoNode aCenter) {
-        double latDiff = lat - aCenter.getLatitude();
-        double lonDiff = lon - aCenter.getLongitude();
-        double distanceSquared = (latDiff * latDiff) + (lonDiff * lonDiff);
-        return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
-    }
-
-    private boolean isWithinTerminal(double lat, double lon) {
-        boolean withinTopPart = (lat <= 40.4910 && lat >= 40.4905) &&
-                (lon >= -80.2330 && lon <= -80.2310);
-        boolean withinBottomPart = (lat <= 40.4895 && lat >= 40.4890) &&
-                (lon >= -80.2330 && lon <= -80.2310);
-        boolean withinVerticalPart = (lat <= 40.4910 && lat >= 40.4890) &&
-                (lon >= -80.2330 && lon <= -80.2310);
-        return withinTopPart || withinBottomPart || withinVerticalPart;
     }
 }
