@@ -1,16 +1,12 @@
 # AVENDRA-source-code
 
-The included code is the proposed code implementation described within the paper "AVENDRA: A Conceptual Framework" for the purpose of drone routing.
-
-
-TODO:
-- Comment
-
 ## Overview
 
 This project implements a geospatial graph system using JavaFX for visualization and the Held-Karp dynamic programming algorithm for pathfinding. The goal is to simulate an optimal drone flight path across critical "hotspot" locations within a defined operational area (like an airport property line) while strictly adhering to mandatory air safety zones.
 
 The system finds the shortest possible route that visits every designated hotspot exactly once, starts and ends at the hotspot closest to the terminal, and guarantees that no flight path segment crosses the restricted Aerodrome airspace.
+
+The included code is a proposed implementation described within the paper "AVENDRA: A Conceptual Framework" for the purpose of drone routing, specifically in the Patrol Phase.
 
 ---
 
