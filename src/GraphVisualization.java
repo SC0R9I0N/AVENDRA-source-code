@@ -8,11 +8,9 @@ import static java.lang.Math.abs;
 
 public class GraphVisualization {
 
-    // The canvas width will now be passed in from the main class
     public static Group render(List<GeoNode> nodes) {
         Group root = new Group();
 
-        // step 1: compute bounds of graph
         double minLat = Double.MAX_VALUE, maxLat = Double.MIN_VALUE;
         double minLon = Double.MAX_VALUE, maxLon = Double.MIN_VALUE;
 
@@ -23,7 +21,6 @@ public class GraphVisualization {
             maxLon = Math.max(maxLon, abs(node.getLongitude()));
         }
 
-        // step 2: add buffer to clearly see property line
         double latBuffer = (maxLat - minLat) * 0.1;
         double lonBuffer = (maxLon - minLon) * 0.1;
         minLat -= latBuffer;
@@ -31,16 +28,13 @@ public class GraphVisualization {
         minLon -= lonBuffer;
         maxLon += lonBuffer;
 
-        // step 3: define canvas size
         double canvasWidth = 800;
         double canvasHeight = 600;
 
-        // Create a single Text node to display the altitude
         Text altitudeText = new Text();
         altitudeText.setVisible(false);
         altitudeText.setFill(Color.BLACK);
 
-        // step 4: draw nodes
         for (GeoNode node : nodes) {
             double x = ((abs(node.getLongitude()) - minLon) / (maxLon - minLon) * canvasWidth);
             double y = ((maxLat - node.getLatitude()) / (maxLat - minLat)) * canvasHeight;
@@ -53,12 +47,9 @@ public class GraphVisualization {
                 case HOTSPOT -> Color.LIMEGREEN;
             });
 
-            // Add event handlers for mouse hover
             circle.setOnMouseEntered(e -> {
-                // Set the text to show both ID and Altitude
                 altitudeText.setText(String.format("ID: %s, Alt: %.1fm", node.getId(), node.getAltitude()));
 
-                // Position text slightly to the left and above the node
                 altitudeText.setX(x - 50);
                 altitudeText.setY(y - 15);
                 altitudeText.setVisible(true);
@@ -71,7 +62,6 @@ public class GraphVisualization {
             root.getChildren().add(circle);
         }
 
-        // step 5: draw edges
         for (GeoNode node : nodes) {
             for (GeoEdge edge : node.getEdges()) {
                 GeoNode target = edge.getTarget();
@@ -96,13 +86,5 @@ public class GraphVisualization {
         root.getChildren().add(altitudeText);
 
         return root;
-    }
-
-    public static void drawPath(Group root, List<GeoNode> path) {
-        if (path == null || path.size() < 2) return;
-
-        // This method is now redundant since the path is created as actual GeoEdges,
-        // and a full re-render is triggered, which is a better approach.
-        // It's good practice to remove this to avoid confusion or potential bugs.
     }
 }

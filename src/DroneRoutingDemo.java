@@ -24,12 +24,10 @@ public class DroneRoutingDemo extends Application {
         this.nodes = buildGraph();
         this.root = new BorderPane();
 
-        // Initial rendering of the graph
         updateVisualization();
 
-        // Create the key
         VBox key = createKey();
-        root.setRight(key); // Place the key on the right side of the BorderPane
+        root.setRight(key);
 
         Button runPathButton = new Button("Run Optimal Path");
         runPathButton.setOnAction(e -> {
@@ -40,7 +38,7 @@ public class DroneRoutingDemo extends Application {
 
         root.setBottom(runPathButton);
 
-        Scene scene = new Scene(root, 950, 600); // Increased width to accommodate the key
+        Scene scene = new Scene(root, 950, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Drone Routing Visualization");
         primaryStage.show();
@@ -51,11 +49,10 @@ public class DroneRoutingDemo extends Application {
         root.setCenter(graphGroup);
     }
 
-    // New method to create the legend/key
     private VBox createKey() {
-        VBox keyBox = new VBox(10); // Spacing of 10 pixels between elements
-        keyBox.setPadding(new Insets(20, 10, 10, 10)); // Padding around the key
-        keyBox.setStyle("-fx-background-color: #333333;"); // Dark background for contrast
+        VBox keyBox = new VBox(10);
+        keyBox.setPadding(new Insets(20, 10, 10, 10));
+        keyBox.setStyle("-fx-background-color: #333333;");
 
         Text title = new Text("Graph Key");
         title.setFill(Color.WHITE);
@@ -72,7 +69,6 @@ public class DroneRoutingDemo extends Application {
         return keyBox;
     }
 
-    // Helper method to create a single key item
     private VBox createKeyItem(String label, Color color) {
         Circle circle = new Circle(5);
         circle.setFill(color);
@@ -116,7 +112,6 @@ public class DroneRoutingDemo extends Application {
     private List<GeoNode> buildGraph() {
         List<GeoNode> nodes = new ArrayList<>();
 
-        // U-shaped Terminal (8 nodes, creating a shape that opens to the east)
         GeoNode t_N_outer = new GeoNode("T-N-outer", ZoneType.TERMINAL, 40.4910, -80.2330, 330);
         GeoNode t_N_inner = new GeoNode("T-N-inner", ZoneType.TERMINAL, 40.4905, -80.2330, 330);
         GeoNode t_E_inner_N = new GeoNode("T-E-inner-N", ZoneType.TERMINAL, 40.4905, -80.2315, 330);
@@ -126,10 +121,8 @@ public class DroneRoutingDemo extends Application {
         GeoNode t_W_outer_S = new GeoNode("T-W-outer-S", ZoneType.TERMINAL, 40.4890, -80.2310, 330);
         GeoNode t_W_outer_N = new GeoNode("T-W-outer-N", ZoneType.TERMINAL, 40.4910, -80.2310, 330);
 
-        // Circular Aerodrome
         GeoNode aCenter = new GeoNode("A-Center", ZoneType.AERODROME, 40.4900, -80.2365, 280);
 
-        // Generate and connect nodes for the circular aerodrome outline
         List<GeoNode> aerodromeOutlineNodes = new ArrayList<>();
         for (int i = 0; i < AERODROME_OUTLINE_NODES; i++) {
             double angle = 2 * Math.PI * i / AERODROME_OUTLINE_NODES;
@@ -138,24 +131,20 @@ public class DroneRoutingDemo extends Application {
             GeoNode outlineNode = new GeoNode("A-Outline-" + i, ZoneType.AERODROME, lat, lon, 280);
             aerodromeOutlineNodes.add(outlineNode);
 
-            // Connect the outline node to the center
             aCenter.addEdge(new GeoEdge(aCenter, outlineNode));
         }
 
-        // Connect the outline nodes to each other to form the circle
         for (int i = 0; i < aerodromeOutlineNodes.size(); i++) {
             GeoNode currentNode = aerodromeOutlineNodes.get(i);
             GeoNode nextNode = aerodromeOutlineNodes.get((i + 1) % aerodromeOutlineNodes.size());
             currentNode.addEdge(new GeoEdge(currentNode, nextNode));
         }
 
-        // Property line (unchanged)
         GeoNode pNW = new GeoNode("P-NW", ZoneType.PROPERTY_LINE, 40.4945, -80.2460, 285);
         GeoNode pNE = new GeoNode("P-NE", ZoneType.PROPERTY_LINE, 40.4945, -80.2290, 285);
         GeoNode pSE = new GeoNode("P-SE", ZoneType.PROPERTY_LINE, 40.4870, -80.2290, 285);
         GeoNode pSW = new GeoNode("P-SW", ZoneType.PROPERTY_LINE, 40.4870, -80.2460, 285);
 
-        // Hotspots
         GeoNode[] hotspots = new GeoNode[30];
         for (int i = 0; i < 30; i++) {
             double lat, lon, alt;
@@ -165,34 +154,28 @@ public class DroneRoutingDemo extends Application {
                 lon = -80.2450 + (Math.random() * 0.015);
                 alt = 300 + (Math.random() * 20);
 
-                // Check if within property line
                 boolean withinPropertyLine = (lat >= pSW.getLatitude() && lat <= pNW.getLatitude()) &&
                         (lon >= pSW.getLongitude() && lon <= pNE.getLongitude());
 
-                // Check if within the circular aerodrome
                 boolean withinAerodrome = isWithinAerodrome(lat, lon, aCenter);
 
-                // Check if within the U-shaped terminal
                 boolean withinTerminal = isWithinTerminal(lat, lon);
 
                 if (withinTerminal) {
                     alt = 340;
                 }
 
-                // Location is valid if it's within the property line and NOT within the aerodrome
-                // Additionally, if it's within the terminal, its altitude must be at least 340m
                 isValid = withinPropertyLine && !withinAerodrome;
             } while (!isValid);
 
             hotspots[i] = new GeoNode("H" + (i + 1), ZoneType.HOTSPOT, lat, lon, alt);
         }
 
-        // Add all nodes to the list
-        nodes.addAll(List.of(t_N_outer, t_N_inner, t_E_inner_N, t_E_inner_S, t_S_inner, t_S_outer, t_W_outer_S, t_W_outer_N, aCenter, pNW, pNE, pSE, pSW));
+        nodes.addAll(List.of(t_N_outer, t_N_inner, t_E_inner_N, t_E_inner_S, t_S_inner,
+                t_S_outer, t_W_outer_S, t_W_outer_N, aCenter, pNW, pNE, pSE, pSW));
         nodes.addAll(aerodromeOutlineNodes);
         nodes.addAll(Arrays.asList(hotspots));
 
-        // Connect terminal nodes to form the U-shape (opening to the east)
         t_N_outer.addEdge(new GeoEdge(t_N_outer, t_W_outer_N));
         t_W_outer_N.addEdge(new GeoEdge(t_W_outer_N, t_W_outer_S));
         t_W_outer_S.addEdge(new GeoEdge(t_W_outer_S, t_S_outer));
@@ -202,7 +185,6 @@ public class DroneRoutingDemo extends Application {
         t_E_inner_N.addEdge(new GeoEdge(t_E_inner_N, t_N_inner));
         t_N_inner.addEdge(new GeoEdge(t_N_inner, t_N_outer));
 
-        // Connect property line
         pNW.addEdge(new GeoEdge(pNW, pNE));
         pNE.addEdge(new GeoEdge(pNE, pSE));
         pSE.addEdge(new GeoEdge(pSE, pSW));

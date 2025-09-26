@@ -19,10 +19,8 @@ public class DronePathfinder {
             return;
         }
 
-        // Use a Set to track unvisited hotspot nodes
         Set<GeoNode> unvisited = new HashSet<>(hotspotNodes);
 
-        // Find the hotspot node closest to the terminal to start the journey
         GeoNode startNode = findClosestHotspotToTerminal(hotspotNodes);
         if (startNode == null) {
             System.out.println("Could not find a starting hotspot node.");
@@ -41,14 +39,12 @@ public class DronePathfinder {
                 System.out.println("Could not find a valid path to the next node. Path is incomplete.");
                 break;
             }
-            // Create and add the edge to the graph
             currentNode.addEdge(new GeoEdge(currentNode, nextNode));
             orderedPath.add(nextNode);
             unvisited.remove(nextNode);
             currentNode = nextNode;
         }
 
-        // Add the final edge back to the start to complete the cycle
         if (!orderedPath.isEmpty() && orderedPath.size() > 1) {
             GeoNode lastNode = orderedPath.get(orderedPath.size() - 1);
             lastNode.addEdge(new GeoEdge(lastNode, startNode));

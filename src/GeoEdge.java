@@ -12,11 +12,11 @@ public class GeoEdge {
     private int calculateWeight(GeoNode from, GeoNode to) {
         if (from.getZone() == ZoneType.TERMINAL || to.getZone() == ZoneType.TERMINAL ||
                 from.getZone() == ZoneType.PROPERTY_LINE || to.getZone() == ZoneType.PROPERTY_LINE) {
-            return Integer.MAX_VALUE; // Terminal is a hard barrier
+            return Integer.MAX_VALUE;
         } else if (from.getZone() == ZoneType.AERODROME && to.getZone() == ZoneType.AERODROME) {
-            return 5; // Higher cost inside aerodrome
+            return 5;
         } else {
-            return 1; // Outside aerodrome or mixed zones
+            return 1;
         }
     }
 
