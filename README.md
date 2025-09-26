@@ -4,8 +4,6 @@ The included code is the proposed code implementation described within the paper
 
 
 TODO:
-- Add an automatic key to the graph
-- Increase robust checks so that it handles all possible Lon/Lat values
 - Comment, comment, comment
 - Write documentation
 - Done
