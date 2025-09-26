@@ -85,7 +85,7 @@ public class GraphVisualization {
                     case TERMINAL -> Color.MEDIUMPURPLE;
                     case AERODROME -> Color.BLUE;
                     case PROPERTY_LINE -> Color.HOTPINK;
-                    case HOTSPOT -> Color.WHITE;
+                    case HOTSPOT -> Color.GOLD;
                 });
                 line.getStrokeDashArray().addAll(5.0, 5.0);
                 root.getChildren().add(line);

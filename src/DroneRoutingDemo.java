@@ -2,7 +2,7 @@ import java.util.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.BorderPane; // A good layout for adding a button
+import javafx.scene.layout.BorderPane;
 import javafx.scene.Group;
 import javafx.stage.Stage;
 
@@ -12,20 +12,30 @@ public class DroneRoutingDemo extends Application {
     private static final double AERODROME_RADIUS_DEGREES = 0.0025;
     private static final int AERODROME_OUTLINE_NODES = 24;
 
+    // Store the nodes list as a field so it can be accessed by the button
+    private List<GeoNode> nodes;
+    private BorderPane root;
+
     @Override
     public void start(Stage primaryStage) {
-        List<GeoNode> nodes = buildGraph();
-        Group graphGroup = GraphVisualization.render(nodes);
+        this.nodes = buildGraph();
+
+        this.root = new BorderPane();
+
+        // Initial rendering of the graph
+        updateVisualization();
 
         Button runPathButton = new Button("Run Optimal Path");
         runPathButton.setOnAction(e -> {
-            List<GeoNode> path = DronePathfinder.findOptimalRoute(nodes);
-            GraphVisualization.drawPath(graphGroup, path);
+            // Clear existing hotspot edges to prevent duplicates
+            clearHotspotEdges();
+            // Create and add the new edges to the graph
+            DronePathfinder.createOptimalRouteEdges(this.nodes);
+            // Re-render the visualization with the new edges
+            updateVisualization();
         });
 
-        BorderPane root = new BorderPane();
-        root.setCenter(graphGroup);
-        root.setBottom(runPathButton); // Place the button at the bottom
+        root.setBottom(runPathButton);
 
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
@@ -33,11 +43,28 @@ public class DroneRoutingDemo extends Application {
         primaryStage.show();
     }
 
+    private void updateVisualization() {
+        // Create the new visualization group
+        Group graphGroup = GraphVisualization.render(this.nodes);
+        // Set it as the center of the BorderPane
+        root.setCenter(graphGroup);
+    }
+
+    private void clearHotspotEdges() {
+        for (GeoNode node : nodes) {
+            if (node.getZone() == ZoneType.HOTSPOT) {
+                // Clear only the edges originating from hotspots
+                node.getEdges().clear();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
 
     private List<GeoNode> buildGraph() {
+        // ... (The rest of the buildGraph method is unchanged)
         List<GeoNode> nodes = new ArrayList<>();
 
         // U-shaped Terminal (8 nodes, creating a shape that opens to the east)
@@ -73,7 +100,7 @@ public class DroneRoutingDemo extends Application {
             currentNode.addEdge(new GeoEdge(currentNode, nextNode));
         }
 
-        // Property line
+        // Property line (unchanged)
         GeoNode pNW = new GeoNode("P-NW", ZoneType.PROPERTY_LINE, 40.4945, -80.2460, 285);
         GeoNode pNE = new GeoNode("P-NE", ZoneType.PROPERTY_LINE, 40.4945, -80.2290, 285);
         GeoNode pSE = new GeoNode("P-SE", ZoneType.PROPERTY_LINE, 40.4870, -80.2290, 285);
@@ -99,12 +126,9 @@ public class DroneRoutingDemo extends Application {
                 // Check if within the U-shaped terminal
                 boolean withinTerminal = isWithinTerminal(lat, lon);
 
-                if (withinTerminal) {
-                    alt = 340;
-                }
-
                 // Location is valid if it's within the property line and NOT within the aerodrome
-                isValid = withinPropertyLine && !withinAerodrome;
+                // Additionally, if it's within the terminal, its altitude must be at least 340m
+                isValid = withinPropertyLine && !withinAerodrome && (!withinTerminal || alt >= 340.0);
             } while (!isValid);
 
             hotspots[i] = new GeoNode("H" + (i + 1), ZoneType.HOTSPOT, lat, lon, alt);
@@ -115,7 +139,7 @@ public class DroneRoutingDemo extends Application {
         nodes.addAll(aerodromeOutlineNodes);
         nodes.addAll(Arrays.asList(hotspots));
 
-        // Connect terminal nodes to form the U-shape
+        // Connect terminal nodes to form the U-shape (opening to the east)
         t_N_outer.addEdge(new GeoEdge(t_N_outer, t_W_outer_N));
         t_W_outer_N.addEdge(new GeoEdge(t_W_outer_N, t_W_outer_S));
         t_W_outer_S.addEdge(new GeoEdge(t_W_outer_S, t_S_outer));
@@ -134,46 +158,20 @@ public class DroneRoutingDemo extends Application {
         return nodes;
     }
 
-    /**
-     * Checks if a given coordinate is within the defined circular aerodrome area.
-     * This uses a simple distance calculation based on latitude and longitude differences.
-     * NOTE: This is an approximation for visualization purposes and does not account for
-     * the Earth's curvature.
-     *
-     * @param lat Latitude of the point.
-     * @param lon Longitude of the point.
-     * @param aCenter The central node of the aerodrome.
-     * @return True if the point is within the aerodrome, false otherwise.
-     */
     private boolean isWithinAerodrome(double lat, double lon, GeoNode aCenter) {
         double latDiff = lat - aCenter.getLatitude();
         double lonDiff = lon - aCenter.getLongitude();
-        // Use squared distance to avoid expensive square root operation
         double distanceSquared = (latDiff * latDiff) + (lonDiff * lonDiff);
         return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
     }
 
-    /**
-     * Checks if a given coordinate is within the U-shaped terminal area.
-     * The terminal is composed of two rectangles: a vertical one on the west, and a horizontal one on the south.
-     *
-     * @param lat Latitude of the point.
-     * @param lon Longitude of the point.
-     * @return True if the point is within the terminal, false otherwise.
-     */
     private boolean isWithinTerminal(double lat, double lon) {
-        // Rectangle 1: Top horizontal part
         boolean withinTopPart = (lat <= 40.4910 && lat >= 40.4905) &&
                 (lon >= -80.2330 && lon <= -80.2310);
-
-        // Rectangle 2: Bottom horizontal part
         boolean withinBottomPart = (lat <= 40.4895 && lat >= 40.4890) &&
                 (lon >= -80.2330 && lon <= -80.2310);
-
-        // Rectangle 3: The vertical part of the U
         boolean withinVerticalPart = (lat <= 40.4910 && lat >= 40.4890) &&
                 (lon >= -80.2330 && lon <= -80.2310);
-
         return withinTopPart || withinBottomPart || withinVerticalPart;
     }
 }
