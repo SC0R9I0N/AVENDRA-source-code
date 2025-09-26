@@ -14,7 +14,7 @@ The system finds the shortest possible route that visits every designated hotspo
 
 ---
 
-## 🚀 Core Functionality
+## Core Functionality
 
 | Class | Role | Description |
 | :--- | :--- | :--- |
@@ -27,7 +27,7 @@ The system finds the shortest possible route that visits every designated hotspo
 
 ---
 
-## 🛠️ Key Algorithm and Constraints
+## Key Algorithm and Constraints
 
 The `DronePathfinder` algorithm operates under strict air safety constraints:
 
@@ -43,7 +43,7 @@ The `DronePathfinder` algorithm operates under strict air safety constraints:
 
 ---
 
-## 🗺️ Customizing Airport Data
+## Customizing Airport Data
 
 All geographic constraints and node coordinates are defined within the **`DroneRoutingDemo.java`** file. To adapt this project for a new airport or modify an existing layout, you must edit the code within this file, specifically inside the `buildGraph()`, `isWithinTerminal()`, and `isWithinAerodrome()` methods.
 
@@ -57,7 +57,7 @@ All geographic constraints and node coordinates are defined within the **`DroneR
 
 ---
 
-## 💻 Setup and Installation Guide
+## Setup and Installation Guide
 
 This project requires the **Java Development Kit (JDK 17 or later)** and the **JavaFX SDK** to run the graphical application.
 
