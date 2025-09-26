@@ -1,3 +1,21 @@
+//************************************************************
+//  Authors: Garrett Reihner, Kaitlyn Cavanaugh
+//  GraphVisualization.java
+//
+//  This driver class implements the code and methods
+//  necessary for building the JavaFX visualization for the
+//  graph defined in DroneRoutingDemo.java. This class
+//  contains a single method, render(), that is responsible
+//  for defining the bounds of the visualization window,
+//  define mouse events, scale the graph to properly fit in
+//  the window, and properly draw the graph. The one issue
+//  with this class is that it is specifically designed
+//  to accurately draw this graph with these longitude and
+//  latitude values. The use of abs(node.getLongitude()) and
+//  abs(node.getLatitude()) will not properly work with all
+//  inputs of Longitude and Latitude.
+//************************************************************
+
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -8,6 +26,11 @@ import static java.lang.Math.abs;
 
 public class GraphVisualization {
 
+    /**
+     *
+     * @param nodes
+     * @return
+     */
     public static Group render(List<GeoNode> nodes) {
         Group root = new Group();
 

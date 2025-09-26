@@ -1,3 +1,33 @@
+//************************************************************
+//  Authors: Garrett Reihner, Kaitlyn Cavanaugh
+//  DroneRoutingDemo.java
+//
+//  This is the main driver class of the project. This class
+//  accomplishes the following:
+//      Starts the JavaFX visualization
+//      Updates the visualization after button press
+//      Deploy the key and its items on the visualization
+//      Create the graph of GeoNodes and GeoEdges under
+//          specific constraints defined therein
+//
+//  This file is responsible for everything the user ends up
+//  seeing in the JavaFX visualization, as well as
+//  maintaining the graph's nodes and edges according to
+//  any method calls. This is the main file that would need
+//  to be edited when surveying an airport to create the
+//  optimal drone path. All coordinates would be logged here
+//  to be added to a graph.
+//
+//  This class is limited by the shapes of various structures.
+//  The calculation to determine anything related with the
+//  aerodrome, property line, or terminal would need to be
+//  updated based on the shape they take. The code in this
+//  project assumes that:
+//      The property line is a rectangle
+//      The aerodrome is an oval/circle
+//      The terminal is a U shape rotated 90 degrees right
+//************************************************************
+
 import java.util.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -19,6 +49,10 @@ public class DroneRoutingDemo extends Application {
     private List<GeoNode> nodes;
     private BorderPane root;
 
+    /**
+     *
+     * @param primaryStage
+     */
     @Override
     public void start(Stage primaryStage) {
         this.nodes = buildGraph();
@@ -44,11 +78,18 @@ public class DroneRoutingDemo extends Application {
         primaryStage.show();
     }
 
+    /**
+     *
+     */
     private void updateVisualization() {
         Group graphGroup = GraphVisualization.render(this.nodes);
         root.setCenter(graphGroup);
     }
 
+    /**
+     *
+     * @return
+     */
     private VBox createKey() {
         VBox keyBox = new VBox(10);
         keyBox.setPadding(new Insets(20, 10, 10, 10));
@@ -69,6 +110,12 @@ public class DroneRoutingDemo extends Application {
         return keyBox;
     }
 
+    /**
+     *
+     * @param label
+     * @param color
+     * @return
+     */
     private VBox createKeyItem(String label, Color color) {
         Circle circle = new Circle(5);
         circle.setFill(color);
@@ -80,6 +127,9 @@ public class DroneRoutingDemo extends Application {
         return item;
     }
 
+    /**
+     *
+     */
     private void clearHotspotEdges() {
         for (GeoNode node : nodes) {
             if (node.getZone() == ZoneType.HOTSPOT) {
@@ -88,10 +138,21 @@ public class DroneRoutingDemo extends Application {
         }
     }
 
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     *
+     * @param lat
+     * @param lon
+     * @param aCenter
+     * @return
+     */
     private boolean isWithinAerodrome(double lat, double lon, GeoNode aCenter) {
         double latDiff = lat - aCenter.getLatitude();
         double lonDiff = lon - aCenter.getLongitude();
@@ -99,6 +160,12 @@ public class DroneRoutingDemo extends Application {
         return distanceSquared <= (AERODROME_RADIUS_DEGREES * AERODROME_RADIUS_DEGREES);
     }
 
+    /**
+     *
+     * @param lat
+     * @param lon
+     * @return
+     */
     private boolean isWithinTerminal(double lat, double lon) {
         boolean withinTopPart = (lat <= 40.4910 && lat >= 40.4905) &&
                 (lon >= -80.2330 && lon <= -80.2310);
@@ -109,6 +176,10 @@ public class DroneRoutingDemo extends Application {
         return withinTopPart || withinBottomPart || withinVerticalPart;
     }
 
+    /**
+     *
+     * @return
+     */
     private List<GeoNode> buildGraph() {
         List<GeoNode> nodes = new ArrayList<>();
 
