@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a geospatial graph system using JavaFX for visualization and the Held-Karp dynamic programming algorithm for pathfinding. The goal is to simulate an optimal drone flight path across critical "hotspot" locations within a defined operational area (like an airport property line) while strictly adhering to mandatory air safety zones.
+This project implements a geospatial graph system using JavaFX for visualization and a Greedy Nearest Neighbor algorithm for pathfinding. The goal is to simulate an optimal drone flight path across critical "hotspot" locations within a defined operational area (like an airport property line) while strictly adhering to mandatory air safety zones.
 
 The system finds the shortest possible route that visits every designated hotspot exactly once, starts and ends at the hotspot closest to the terminal, and guarantees that no flight path segment crosses the restricted Aerodrome airspace.
 
@@ -19,7 +19,7 @@ The included code is a proposed implementation described within the paper "AVEND
 | `GeoEdge.java` | **Data Structure** | Represents a directional connection between two `GeoNode`s. It holds the start and target nodes and includes an optional cost (`weight`). |
 | `ZoneType.java` | **Enum** | Defines the mandatory zone categories: `HOTSPOT`, `TERMINAL`, `AERODROME`, and `PROPERTY_LINE`. |
 | `GraphVisualization.java` | **Visualization** | Renders the entire graph to the JavaFX window. Handles all coordinate scaling, drawing the nodes and edges, displaying the legend, and providing dynamic mouse-hover altitude/ID information. |
-| `DronePathfinder.java` | **Algorithm** | Implements the **Held-Karp Dynamic Programming Algorithm** (a solution to the Traveling Salesperson Problem, or TSP) to find the absolute shortest cycle that visits all hotspot nodes while avoiding the aerodrome. |
+| `DronePathfinder.java` | **Algorithm** | Implements the **Greedy Nearest Neighbor Algorithm** to find the absolute shortest cycle that visits all hotspot nodes while avoiding the aerodrome. |
 
 ---
 
