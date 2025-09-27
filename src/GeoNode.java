@@ -13,6 +13,12 @@
 
 import java.util.*;
 
+/**
+ * Represents a single geographic point or location in the routing graph.
+ * A GeoNode has a unique ID, a specific zone type, and precise coordinates
+ * for longitude, latitude, and altitude. It also maintains the outgoing edges
+ * to other GeoNodes, forming connections in the graph
+ */
 public class GeoNode {
     private final String id;
     private final ZoneType zone;
@@ -22,12 +28,12 @@ public class GeoNode {
     private final List<GeoEdge> edges = new ArrayList<>();
 
     /**
-     *
-     * @param id
-     * @param zone
-     * @param latitude
-     * @param longitude
-     * @param altitude
+     * Constructs a new GeoNode with the specified properties.
+     * @param id The unique identifier for the node.
+     * @param zone The zone the node belongs to (HOTSPOT, TERMINAL, etc.).
+     * @param latitude Geographic latitude of the node in degrees.
+     * @param longitude Geographic longitude of the node in degrees
+     * @param altitude Altitude of the node in meters.
      */
     public GeoNode(String id, ZoneType zone, double latitude, double longitude, double altitude) {
         this.id = id;
@@ -38,52 +44,61 @@ public class GeoNode {
     }
 
     /**
+     * Adds an outgoing edge from the specified node to another.
      *
-     * @param edge
+     * @param edge The GeoEdge added.
      */
     public void addEdge(GeoEdge edge) {
         edges.add(edge);
     }
 
     /**
+     * Returns the list of all outgoing edges from this node.
      *
-     * @return
+     * @return A list of GeoEdge objects.
      */
     public List<GeoEdge> getEdges() { return edges; }
 
     /**
+     * Returns the zone type of this node.
      *
-     * @return
+     * @return The ZoneType enum value.
      */
     public ZoneType getZone() { return zone; }
 
     /**
+     * Returns the unique identifier of this node.
      *
-     * @return
+     * @return The ID as a String.
      */
     public String getId() { return id; }
 
     /**
+     * Returns the latitude of this node.
      *
-     * @return
+     * @return Latitude in degrees.
      */
     public double getLatitude() { return latitude; }
 
     /**
+     * Returns the longitude of this node.
      *
-     * @return
+     * @return Longitude in degrees.
      */
     public double getLongitude() { return longitude; }
 
     /**
+     * Returns the altitude of this node.
      *
-     * @return
+     * @return Altitude in meters.
      */
     public double getAltitude() { return altitude; }
 
     /**
+     * Returns a formatted string representation of the GeoNode.
+     * The format includes ID, zone type, and the coordinates.
      *
-     * @return
+     * @return String formatted as "ID [Zone] @ (lat, lon, alt)".
      */
     @Override
     public String toString() {

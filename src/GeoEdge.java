@@ -17,15 +17,23 @@
 //  aerodrome to pursue a bird.
 //************************************************************
 
+/**
+ * Represents the directional edge between two GeoNodes. The edge
+ * stores a calculated weight, which represents the cost for traversal
+ * between those nodes. It also bases the weights on the ZoneTypes of
+ * of the connected nodes.
+ */
 public class GeoEdge {
     private final GeoNode from;
     private final GeoNode target;
     private int weight;
 
     /**
+     * Constructs a new GeoEdge object and calculates its initial
+     * weight based on the zones of 'from' and 'to' nodes.
      *
-     * @param from
-     * @param to
+     * @param from Starting GeoNode of this edge.
+     * @param to Target GeoNode of this edge.
      */
     public GeoEdge(GeoNode from, GeoNode to) {
         this.from = from;
@@ -34,10 +42,16 @@ public class GeoEdge {
     }
 
     /**
+     * Calculates the initial weight of the edge based on the zones
+     * of the two nodes the edge connects.
      *
-     * @param from
-     * @param to
-     * @return
+     * Rules:
+     * 1. TERMINAL or PROPERTY_LINE are considered impassable.
+     * 2. Connections within AERODROME have moderate weight.
+     * 3. All connections between HOTSPOT zones have a weight of 1.
+     * @param from Starting GeoNode.
+     * @param to Target GeoNode.
+     * @return Calculated integer weight of the edge.
      */
     private int calculateWeight(GeoNode from, GeoNode to) {
         if (from.getZone() == ZoneType.TERMINAL || to.getZone() == ZoneType.TERMINAL ||
@@ -51,10 +65,16 @@ public class GeoEdge {
     }
 
     /**
+     * Overrides the current weight to 1 for emergency purposes,
+     * allowing the drone to enter the aerodrome for the purposes of
+     * pursuing a bird that passes into it.
      *
-     * @param from
-     * @param to
-     * @return
+     * NOTE: This is a placeholder method that is not fully implemented,
+     * and would need additional constraints based on the full system.
+     *
+     * @param from Starting GeoNode
+     * @param to Target GeoNode
+     * @return Status message describing the weight change.
      */
     public String overrideWeight(GeoNode from, GeoNode to) {
         int tempWeight = weight;
@@ -65,9 +85,15 @@ public class GeoEdge {
     }
 
     /**
+     * Restores the edge weight back to its initial value after overrideWeight()
+     * has been used.
+     * {@link #calculateWeight(GeoNode, GeoNode)}.
      *
-     * @param from
-     * @param to
+     * NOTE: This is a placeholder method that is not fully implemented,
+     * and would need additional constraints based on the full system.
+     *
+     * @param from Starting GeoNode
+     * @param to Target GeoNode
      * @return
      */
     public String recoverWeight(GeoNode from, GeoNode to) {
@@ -77,14 +103,23 @@ public class GeoEdge {
     }
 
     /**
+     * Returns the target GeoNode of this edge.
      *
-     * @return
+     * @return GeoNode the edge points to.
      */
     public GeoNode getTarget() { return target; }
 
     /**
+     * Returns the current weight of this edge
      *
-     * @return
+     * @return The integer weight.
      */
     public int getWeight() { return weight; }
+
+    /**
+     * Returns the start GeoNode of this edge.
+     *
+     * @return GeoNode the edge comes from.
+     */
+    public GeoNode getFrom() { return from; }
 }
